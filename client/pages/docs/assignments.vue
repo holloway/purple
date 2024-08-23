@@ -59,7 +59,8 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Assignment } from '~/rpctracker_client'
 
 const csrf = useCookie('csrftoken', { sameSite: 'strict' })
 const api = useApi()
@@ -80,7 +81,7 @@ const cookedAssignments = computed(() => assignments.value?.map(a => ({
 })))
 
 const documents = computed(
-  () => rfcsToBe.value?.map((rtb) => {
+  () => rfcsToBe.value?.map((rtb: any) => {
     // Add some fake properties for demonstration purposes
     const assignments = cookedAssignments.value?.filter(a => a.rfc_to_be === rtb.id)
     const needsAssignment = assignments.length ? null : roles.value?.toSorted(() => Math.random() - 0.5)[0]
@@ -91,7 +92,7 @@ const documents = computed(
 
 const filteredDocuments = computed(
   () => documents.value?.filter(
-    rtb => !state.roleFilter || (rtb.needsAssignment?.slug === state.roleFilter)
+    (rtb: any) => !state.roleFilter || (rtb.needsAssignment?.slug === state.roleFilter)
   ) ?? []
 )
 
@@ -112,15 +113,15 @@ const currentFilterDesc = computed(() => {
 
 // METHODS
 
-async function saveAssignment (assignment) {
+async function saveAssignment (assignment: Assignment) {
   await $fetch('/api/rpc/assignments/', {
     body: {
-      rfc_to_be: assignment.rfcToBeId,
-      person: assignment.personId,
-      role: documents.value.find(d => d.id === assignment.rfcToBeId)?.needsAssignment?.slug ?? 'first_editor'
+      rfc_to_be: assignment.rfcToBe,
+      person: assignment.person,
+      role: documents.value.find((d: any) => d.id === assignment.rfcToBe)?.needsAssignment?.slug ?? 'first_editor'
     },
     method: 'POST',
-    headers: { 'X-CSRFToken': csrf.value }
+    headers: { 'X-CSRFToken': csrf.value?.toString() ?? '' }
   })
   await refresh()
 }
@@ -135,10 +136,10 @@ function compareEditors (a, b) {
   return comparisons.find(c => c !== 0) ?? 0
 }
 
-async function deleteAssignment (assignment) {
+async function deleteAssignment (assignment: Assignment) {
   await $fetch(`/api/rpc/assignments/${assignment.id}`, {
     method: 'DELETE',
-    headers: { 'X-CSRFToken': csrf.value }
+    headers: { 'X-CSRFToken': csrf?.value ?? '' }
   })
   await refresh()
 }

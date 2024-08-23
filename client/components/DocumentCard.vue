@@ -119,18 +119,26 @@ Based on https://tailwindui.com/components/application-ui/lists/grid-lists#compo
   </li>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { DateTime } from 'luxon'
 import { uniqBy } from 'lodash-es'
+import { assignEditorKey } from '~/providers/providerKeys'
+import type { DocumentCardType } from './DocumentCardsTypes'
 
-const props = defineProps({
-  document: { type: Object, required: true },
-  selected: Boolean,
-  editors: Array,
+type Props = {
+  document: DocumentCardType
+  selected?: boolean
+  editors: Array
   editorAssignedDocuments: Object
-})
+}
 
-const assignEditor = inject('assignEditor')
+const props = defineProps<Props>()
+
+const _assignEditor = inject(assignEditorKey)
+if (!_assignEditor) {
+  throw Error('Required assignEditor injection')
+}
+const assignEditor = _assignEditor
 const deleteAssignment = inject('deleteAssignment')
 
 function toggleEditor (editorIds) {
